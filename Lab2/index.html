@@ -67,7 +67,7 @@
 
         //geojson data
         var provinces = new L.geoJson(provinces, { style: style }).addTo(map);
-        var countries = new L.geoJson(countries).addTo(map);
+        var countries = new L.geoJson(countries);
 
         var minValue = 100;
         var minRadius = 10;
