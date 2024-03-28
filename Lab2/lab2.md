@@ -13,4 +13,4 @@ To create a new class in the chloropleth map I would find a relevant geojson fil
 I did this by adding a countries geojson and including that in the script. The borders of the countries are now included in my scipt but I didn't automatically add it to the map because it is an extra unnecessary feature.
 
 ### 2. How would you create a map where all overlay layers are toggled off by default? Why would that be useful?
-All you need to do to toggle the layers off by default is leave of the addToMap() method after instantiating a geoJSON object. Then the layer control buttons can add it in but it isn't automatically loaded onto the map.
+All you need to do to toggle the layers off by default is leave off the addToMap() method after instantiating a geoJSON object. Then the layer control buttons can add it in but it isn't automatically loaded onto the map.
