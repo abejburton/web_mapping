@@ -31,10 +31,26 @@
     <script>
         var map = L.map('map', { attributionControl: false }).setView([41.7925, -87.5959], 14);
         L.control.attribution({ prefix: false }).addTo(map);
-        var tilesource_layer = L.tileLayer('file:////Users/abeburton/Desktop/web_mapping/Lab3/{z}/{x}/{y}.png', { minZoom: 13, maxZoom: 15, tms: false, attribution: 'Created by QGIS' }).addTo(map);
+        var tilesource_layer = L.tileLayer('https://abejburton.github.io/web_mapping/Lab3/{z}/{x}/{y}.png', { minZoom: 13, maxZoom: 15, tms: false, attribution: 'Created by QGIS' }).addTo(map);
         //var bus = new L.geoJson(bus).addTo(map);
+        var onEachFeature = function (feature, layer) {
+            if (feature.properties) {
+                var prop = feature.properties;
+                // make an html popup with properties
+                //see how you can concatenate various attributes and text as needed,
+                //including HTML markup, with single quotes. You pull out properties by
+                //typing in prop and then putting the field in brackets.
+                //you can do this because prop = feature.properties._____
+                var popup = '<h3>' + prop['Name'] + '</h3>';
+                // add known info about event to the description
+                // you must create a layer property on each feature or else
+                // the search results wont know where the item is on the map / layer
+                feature.layer = layer;
+                layer.bindPopup(popup, { maxWidth: "auto" });
+            }
+        };
         var busStopStyle = {
-            radius: 3, // Size of the circle marker
+            radius: 5, // Size of the circle marker
             fillColor: "#0E6655", // Fill color of the circle
             color: "#000", // Border color of the circle
             weight: .5, // Border width of the circle
@@ -43,6 +59,7 @@
         };
         // Create the GeoJSON layer and apply the style
         var bus = L.geoJson(bus, {
+            onEachFeature: onEachFeature,
             pointToLayer: function (feature, latlng) {
                 return L.circleMarker(latlng, busStopStyle);
             }
