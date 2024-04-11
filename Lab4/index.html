@@ -1,0 +1,110 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Assignment 4 | YOUR NAME</title>
+    <style>
+        html,
+        body,
+        #viewDiv {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.29/"></script>
+    <script>
+        require(["esri/Map", "esri/layers/TileLayer",
+            "esri/layers/GeoJSONLayer", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/widgets/Legend"], function (Map, TileLayer, GeoJSONLayer, MapView, FeatureLayer, Legend) {
+
+                // set basemap
+                var thebasemap = new TileLayer({
+                    url: "https://gisext.lincoln.ne.gov/arcgis/rest/services/GIS/LancoBasemap/MapServer/"
+                });
+
+                // define renderer to change attributes of a layer
+                const renderer = {
+                    type: "simple",
+                    field: "CNTASSDVAL",
+                    legendOptions: { title: "Assessed values in Lincoln" },
+                    symbol: {
+                        type: "simple-marker",
+                        color: "red",
+                        outline: {
+                            color: "grey"
+                        }
+                    },
+                    visualVariables: [
+                        {
+                            type: "size",
+                            field: "CNTASSDVAL",
+                            stops: [
+                                {
+                                    value: 100000,
+                                    size: "7px",
+                                    label: "Low: 0 - 100,000"
+                                },
+                                {
+                                    value: 500000,
+                                    size: "17px",
+                                    label: "Medium: 100,000 - 500,000"
+                                },
+                                {
+                                    value: 1000000,
+                                    size: "26px",
+                                    label: "High: > 1,000,000"
+                                }
+                            ]
+                        }
+                    ]
+                };
+
+                // define feature layers to be added to the map
+                const url =
+                    "https://rcshepard.github.io/downtownlincoln.geojson";
+                const geojsonLayer = new GeoJSONLayer({
+                    url: url,
+                    copyright: "Created 04/2024 by Abe Burton",
+                    renderer: renderer
+                });
+                var zoningCode = new FeatureLayer({
+                    url: "https://gisext.lincoln.ne.gov/arcgis/rest/services/Assessor/Zoning_Corplim/MapServer/0",
+                    effect: "opacity(15%)"
+
+                });
+                var parkBoundaries = new FeatureLayer({
+                    url: "https://gisext.lincoln.ne.gov/arcgis/rest/services/Parks/Park_Boundaries/MapServer/0"
+                });
+
+                //define the map with layer order and set the view
+                var map = new Map({
+                    layers: [thebasemap, zoningCode, parkBoundaries, geojsonLayer]
+                });
+                var view = new MapView({
+                    container: "viewDiv",
+                    map: map,
+                    zoom: 16,
+                    center: [-96.70361949899338, 40.808086685305945,] // longitude, latitude – change this as needed
+                });
+
+                // set legend
+                const legend = new Legend({
+                    view: view,
+                    layerInfos: [{
+                        layer: geojsonLayer,
+                        title: "Assignment 4 Symbols"
+                    }]
+                });
+                view.ui.add(legend, "bottom-right");
+            });
+    </script>
+</head>
+
+<body>
+    <div id="viewDiv"></div>
+</body>
+
+</html>
