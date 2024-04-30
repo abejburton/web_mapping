@@ -72,7 +72,7 @@
         var minValue = 100;
         var minRadius = 10;
         function calcRadius(val) {
-            return 0.9 * Math.pow(val / minValue, .7) * minRadius;
+            return 0.5 * Math.pow(val / minValue, .7) * minRadius;
         }
         var onEachFeature = function (feature, layer) {
             if (feature.properties) {
