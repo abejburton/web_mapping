@@ -1,4 +1,4 @@
-onLoadData({
+{
     "type": "FeatureCollection",
     "name": "centroids",
     "crs": {
@@ -15609,4 +15609,4 @@ onLoadData({
             }
         }
     ]
-})
+}
