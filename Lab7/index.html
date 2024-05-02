@@ -61,6 +61,13 @@
         var timeline;
         var timelineControl;
 
+
+        var minValue = 100;
+        var minRadius = 10;
+        function calcRadius(val) {
+            return 10 * Math.pow(val / minValue, .7) * minRadius;
+        }
+
         function onLoadData(data) {
             timeline = L.timeline(data, {
                 style: function (data) {
@@ -74,6 +81,16 @@
                 onEachFeature: function (feature, layer) {
                     layer.bindTooltip('<h3>' + feature.properties.NAME + '</h3> <p>' + ' <br>Biden: <strong>' + feature.properties.DEM + '</strong> <br>Trump: <strong>' + feature.properties.REP + '</strong></p>');
                 },
+                pointToLayer: function (feature, ll) {
+                    return L.circleMarker(ll, {
+                        color: '#000000',
+                        opacity: 0.9,
+                        weight: 1,
+                        fillColor: getColorFor(feature.properties.DIFF),
+                        fillOpacity: .5,
+                        radius: calcRadius(feature.properties.EV_EV)
+                    });
+                }
             });
 
             timelineControl = L.timelineSliderControl({
@@ -87,7 +104,7 @@
             timelineControl.addTimelines(timeline);
         }
     </script>
-    <script src="https://github.com/abejburton/web_mapping/blob/main/Lab7/centroids.jsonp%20"></script>
+    <script src="https://www.abeburton.com/web_mapping/Lab7/centroids.jsonp%20"></script>
 </body>
 
 </html>

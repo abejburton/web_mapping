@@ -10,3 +10,9 @@ I would add a line like this value >= 3 ? '#92c5de' : where #92c5de is a light b
 ## Question 3: Reflect briefly on what elements work well here and which might confuse audiences. How might you improve this map? 5 points.
 
 I think its strange to have discontinuous jumps in color classification when the polling data is fairly continuous. The map also doesn't show population or overall voting trends for the nation.
+
+## Question 4: Is scaling radius by a direct value bad for symbol mapping? Why/why not? Will resulting symbols be proportional to their values?
+You shouldn't scale by direct value because a circle with radius 10 will look much larger than 2x the size of a circle with radius 5. So you should scale the radius somehow as we did in Lab 2 with the Covid data which I adapted for this assignment. You could also scale by the square root of the radius.
+
+The link for the first chloropleth map is here: ``
+The link for the voting differences proportional to electoral votes is here: ``
