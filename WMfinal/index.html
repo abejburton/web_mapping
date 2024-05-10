@@ -1,0 +1,110 @@
+<html>
+
+<head>
+    <title>2020 Election Polls</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+    <script src="https://skeate.dev/Leaflet.timeline/examples/leaflet.timeline.js"></script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .leaflet-bottom.leaflet-left {
+            width: 100%;
+        }
+
+        .leaflet-control-container .leaflet-timeline-controls {
+            box-sizing: border-box;
+            width: 100%;
+            margin: 0;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <script>
+        function getColorFor(value) {
+            return value >= 8 ? '#053061' :
+                value >= 6 ? '#2166ac' :
+                    value >= 4 ? '#4393c3' :
+                        value >= 2 ? '#92c5de' :
+                            value >= 0 ? '#d1e5f0' :
+                                value >= -2 ? '#fddbc7' :
+                                    value >= -4 ? '#f4a582' :
+                                        value >= -6 ? '#d6604d' :
+                                            value >= -8 ? '#b2182b' :
+                                                '#67001f';
+        }
+
+        var background = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+            maxZoom: 16
+        });
+        var map = L.map("map", {
+            layers: [background],
+            center: new L.LatLng(40.7, -111.9),
+            zoom: 11,
+        });
+        var timeline;
+        var timelineControl;
+
+
+        var minValue = 100;
+        var minRadius = 10;
+        function calcRadius(val) {
+            return 10 * Math.pow(val / minValue, .7) * minRadius;
+        }
+
+        function onLoadData(data) {
+            timeline = L.timeline(data, {
+                style: function (data) {
+                    return {
+                        stroke: false,
+                        color: getColorFor(data.properties.DIFF),
+                        fillOpacity: 0.9,
+                    };
+                },
+                waitToUpdateMap: true,
+                onEachFeature: function (feature, layer) {
+                    layer.bindTooltip('<h3>' + feature.properties.NAME + '</h3> <p>' + ' <br>Biden: <strong>' + feature.properties.DEM + '</strong> <br>Trump: <strong>' + feature.properties.REP + '</strong></p>');
+                },
+                pointToLayer: function (feature, ll) {
+                    return L.circleMarker(ll, {
+                        color: '#000000',
+                        opacity: 0.9,
+                        weight: 1,
+                        fillColor: getColorFor(feature.properties.DIFF),
+                        fillOpacity: .5,
+                        radius: calcRadius(feature.properties.EV_EV)
+                    });
+                }
+            });
+
+            timelineControl = L.timelineSliderControl({
+                formatOutput: function (date) {
+                    return new Date(date).toLocaleDateString();
+                },
+                enableKeyboardControls: true,
+            });
+            timeline.addTo(map);
+            timelineControl.addTo(map);
+            timelineControl.addTimelines(timeline);
+        }
+    </script>
+    <script src="https://www.abeburton.com/web_mapping/Lab7/centroids.jsonp%20"></script>
+</body>
+
+</html>
