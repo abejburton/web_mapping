@@ -33,17 +33,6 @@
             width: 100vw;
             height: 100vh;
         }
-
-        .leaflet-bottom.leaflet-left {
-            width: 100%;
-        }
-
-        .leaflet-control-container .leaflet-timeline-controls {
-            box-sizing: border-box;
-            width: 100%;
-            margin: 0;
-            margin-bottom: 15px;
-        }
     </style>
 </head>
 
@@ -61,38 +50,65 @@
             center: new L.LatLng(40.7, -111.9),
             zoom: 11,
         });
-        var timeline;
-        var timelineControl;
+
+        // onEachFeature generate a popup for each location
+        var onEachFeature = function (feature, layer) {
+            if (feature.properties) {
+                var prop = feature.properties;
+                // make a cool little html popup with properties
+                var popup = '<h3>' + prop['stop_id'] + ' ' + prop['departure_time'];
+                // add known info about event to the description
+
+                // you must create a layer property on each feature or else
+                // the search results won't know where the item is on the map / layer
+                feature.layer = layer;
+                layer.bindPopup(popup, { maxWidth: "auto" });
+            }
+        }; // end onEachFeature
+
+        var orangeCircleMarkers = {
+            radius: 5,
+            fillColor: "#ED1C24",
+            color: "#ED1C24",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.7
+        };
+
+        var myIcon = L.icon({
+            iconUrl: 'my-icon.png',
+            iconRetinaUrl: 'my-icon@2x.png',
+            iconSize: [1, 1],
+            iconAnchor: [1, 1],
+            popupAnchor: [-1, -1]
+        });
+
+        var timelineLayer = L.geoJson(stopInfo, {
+            onEachFeature: onEachFeature,
+            pointToLayer: function (feature, latlng) {
+                return L.circleMarker(latlng, orangeCircleMarkers);
+            }
+        });
+
+        var sliderControl = L.control.sliderControl({
+            position: "topright",
+            layer: timelineLayer,
+            range: true // gives it a bottom and a top slider
+        });
+
+        map.addControl(sliderControl);
+        sliderControl.startSlider(); // initialize
 
 
-        var minValue = 100;
-        var minRadius = 10;
-        function calcRadius(val) {
-            return 10 * Math.pow(val / minValue, .7) * minRadius;
-        }
+        //var overlays = {
+        //    "Shows": firstlayer
+        //};
 
-        function onLoadData(data) {
-            timeline = L.timeline(data, {
-                style: function (data) {
-                    return {
-                        stroke: false,
-                        color: '#0E6655',
-                        fillOpacity: 0.9,
-                    };
-                },
-                waitToUpdateMap: true
-            });
+        var baseMaps = {
+            "Map": background
+        };
 
-            timelineControl = L.timelineSliderControl({
-                formatOutput: function (date) {
-                    return new Date(date).toLocaleDateString();
-                },
-                enableKeyboardControls: true,
-            });
-            timeline.addTo(map);
-            timelineControl.addTo(map);
-            timelineControl.addTimelines(timeline);
-        }
+        L.control.layers(overlays, baseMaps, { collapsed: false }).addTo(map);
     </script>
 </body>
 
