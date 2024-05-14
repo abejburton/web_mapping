@@ -7,21 +7,14 @@
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="https://dsps.lib.uiowa.edu/placing/public/leafletSlider-1.0.2/leaflet.SliderControl.min.js"></script>
+    <script src="https://www.abeburton.com/web_mapping/WMfinal/GTFS/stop_info.js"></script>
+    <script
+        src="https://www.abeburton.com/web_mapping/WMfinal/Low_Transportation_Cost_Index_-6469997285854372953.js"></script>
+    <script src="https://unpkg.com/esri-leaflet"></script>
     <script src="https://dsps.lib.uiowa.edu/placing/public/fuse-1.2.1/fuse.min.js"></script>
     <script src="https://dsps.lib.uiowa.edu/placing/public/leafletFuseSearch-noVersion/leafletfuse.js"></script>
     <link rel="stylesheet" href="https://dsps.lib.uiowa.edu/placing/public/leafletFuseSearch-noVersion/leafletfuse.css"
         type="text/css" />
-    <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" type="text/css">
-    <script
-        src="https://dsps.lib.uiowa.edu/placing/public/jqueryUiTouchPunch-0.2.2/jquery.ui.touch-punch.min.js"></script>
-    <script src="https://www.abeburton.com/web_mapping/WMfinal/GTFS/stop_info.js"></script>
-    <script
-        src="https://www.abeburton.com/web_mapping/WMfinal/Low_Transportation_Cost_Index_-6469997285854372953.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://dsps.lib.uiowa.edu/placing/css/style.css">
-    <link rel="stylesheet" type="text/css" href="https://dsps.lib.uiowa.edu/placing/css/navwrap.css">
 
     <style>
         html,
@@ -33,6 +26,17 @@
         #map {
             width: 100vw;
             height: 100vh;
+        }
+
+        .leaflet-bottom.leaflet-left {
+            width: 100%;
+        }
+
+        .leaflet-control-container .leaflet-timeline-controls {
+            box-sizing: border-box;
+            width: 100%;
+            margin: 0;
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -52,31 +56,58 @@
             zoom: 11,
         });
 
-        var expenseLayer = L.geoJson(expense)
-
-        // onEachFeature generate a popup for each location
         var onEachFeature = function (feature, layer) {
             if (feature.properties) {
                 var prop = feature.properties;
-                // make a cool little html popup with properties
-                var popup = '<h3>' + prop['stop_id'] + ' ' + prop['departure_time'];
-                // add known info about event to the description
-
-                // you must create a layer property on each feature or else
-                // the search results won't know where the item is on the map / layer
+                var popup = '<p>' + 'Tract ' + prop['TRACT'] + '<br><br>' + ' Total Cost Index: ' + prop['TCOST_IDX'];
                 feature.layer = layer;
                 layer.bindPopup(popup, { maxWidth: "auto" });
             }
-        }; // end onEachFeature
-
-        var orangeCircleMarkers = {
-            radius: 5,
-            fillColor: "#ED1C24",
-            color: "#ED1C24",
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.7
         };
+
+        function getColorFor(value) {
+            return value >= 90 ? '#00441b' :
+                value >= 80 ? '#006d2c' :
+                    value >= 70 ? '#238b45' :
+                        value >= 60 ? '#41ab5d' :
+                            value >= 50 ? '#74c476' :
+                                value >= 40 ? '#a1d99b' :
+                                    value >= 30 ? '#c7e9c0' :
+                                        value >= 20 ? '#e5f5e0' :
+                                            value >= 10 ? '#f7fcf5' :
+                                                '#FFFFFF';
+        }
+        var expenseLayer = L.geoJson(expense, {
+            onEachFeature: onEachFeature,
+            style: function (feature) {
+                return {
+                    color: getColorFor(feature.properties.TCOST_IDX),
+                    fillOpacity: 0.6
+                };
+            }
+        }).addTo(map);
+
+        // Add the routes ArcGIS feature layers
+        var lightRailLayer = L.esri.featureLayer({
+            url: 'https://services1.arcgis.com/99lidPhWCzftIe9K/ArcGIS/rest/services/UTALightRailRoutes/FeatureServer/0',
+            style: function () {
+                return { color: '#FFC300', weight: 2 };
+            }
+        }).addTo(map);
+
+        var commuterRailLayer = L.esri.featureLayer({
+            url: 'https://services1.arcgis.com/99lidPhWCzftIe9K/ArcGIS/rest/services/UTACommuterRailRoutes/FeatureServer/0',
+            style: function () {
+                return { color: '#FF5733', weight: 2 };
+            }
+        }).addTo(map);
+
+        var allRoutesLayer = L.esri.featureLayer({
+            url: 'https://services.arcgis.com/5QAphMT1g51Tw2X4/ArcGIS/rest/services/UTA_Routes_0419/FeatureServer/0',
+            style: function () {
+                return { color: '#C70039', weight: 1 };
+            }
+        });
 
         var myIcon = L.icon({
             iconUrl: 'my-icon.png',
@@ -86,33 +117,68 @@
             popupAnchor: [-1, -1]
         });
 
-        var timelineLayer = L.geoJson(stopInfo, {
-            onEachFeature: onEachFeature,
-            pointToLayer: function (feature, latlng) {
-                return L.circleMarker(latlng, orangeCircleMarkers);
+        // LEAFLET SLIDER
+        var timeline;
+        var timelineControl;
+
+        function onLoadData(data) {
+            timeline = L.timeline(data, {
+                style: function (data) {
+                    return {
+                        radius: 2,
+                        fillColor: "#1585C2",
+                        color: "#1585C2",
+                        weight: .5,
+                        opacity: 1,
+                        fillOpacity: 0.5
+                    };
+                },
+                waitToUpdateMap: true,
+            });
+
+            timelineControl = L.timelineSliderControl({ enableKeyboardControls: true, });
+            timeline.addTo(map);
+            timelineControl.addTo(map);
+            timelineControl.addTimelines(timeline);
+        }
+
+        // create search
+        var searchOptions = {
+            position: 'topleft',
+            title: 'Search',
+            placeholder: 'Example: 100200',
+            maxResultLength: 10,
+            caseSensitive: false,
+            showInvisibleFeatures: true,
+            layerToToggle: expenseLayer,
+            threshold: 0.5, // default is .5, will match imperfect results
+            showResultFct: function (feature, container) {
+                props = feature.properties;
+                var name = L.DomUtil.create('b', null, container);
+                name.innerHTML = props.TRACT;
+                container.appendChild(L.DomUtil.create('br', null, container));
+
+                var cat = props.TRACT ? props.TRACT : props.TRACT,
+                    info = cat;
+                container.appendChild(document.createTextNode(info));
             }
-        });
+        };
+        var searchControl = L.control.fuseSearch(searchOptions);
+        map.addControl(searchControl);
+        searchControl.indexFeatures(expense, ['TRACT']);
 
-        var sliderControl = L.control.sliderControl({
-            position: "topright",
-            layer: timelineLayer,
-            range: true, // gives it a bottom and a top slider
-            values: ["06:00:00", "08:00:00"]
-        });
-
-        map.addControl(sliderControl);
-        sliderControl.startSlider(); // initialize
-
-
-        //var overlays = {
-        //    "Shows": firstlayer
-        //};
+        var overlays = {
+            "Transportation Affordability Score": expenseLayer,
+            "Light Rail Routes": lightRailLayer,
+            "Commuter Rail Routes": commuterRailLayer,
+            "Rail and Bus Routes": allRoutesLayer,
+        };
 
         var baseMaps = {
             "Map": background
         };
 
-        L.control.layers(overlays, baseMaps, { collapsed: false }).addTo(map);
+        L.control.layers(baseMaps, overlays, { collapsed: false }).addTo(map);
     </script>
 </body>
 
