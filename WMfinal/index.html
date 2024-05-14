@@ -17,8 +17,9 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" type="text/css">
     <script
         src="https://dsps.lib.uiowa.edu/placing/public/jqueryUiTouchPunch-0.2.2/jquery.ui.touch-punch.min.js"></script>
-    <script src="https://www.abeburton.com/web_mapping/WMfinal/stop_info.js"></script>
-
+    <script src="https://www.abeburton.com/web_mapping/WMfinal/GTFS/stop_info.js"></script>
+    <script
+        src="https://www.abeburton.com/web_mapping/WMfinal/Low_Transportation_Cost_Index_-6469997285854372953.js"></script>
     <link rel="stylesheet" type="text/css" href="https://dsps.lib.uiowa.edu/placing/css/style.css">
     <link rel="stylesheet" type="text/css" href="https://dsps.lib.uiowa.edu/placing/css/navwrap.css">
 
@@ -50,6 +51,8 @@
             center: new L.LatLng(40.7, -111.9),
             zoom: 11,
         });
+
+        var expenseLayer = L.geoJson(expense)
 
         // onEachFeature generate a popup for each location
         var onEachFeature = function (feature, layer) {
@@ -93,7 +96,8 @@
         var sliderControl = L.control.sliderControl({
             position: "topright",
             layer: timelineLayer,
-            range: true // gives it a bottom and a top slider
+            range: true, // gives it a bottom and a top slider
+            values: ["06:00:00", "08:00:00"]
         });
 
         map.addControl(sliderControl);
