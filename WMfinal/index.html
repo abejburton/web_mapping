@@ -122,26 +122,34 @@
         var timelineControl;
 
         function onLoadData(data) {
+            data.features.forEach(feature => {
+                if (feature.properties && feature.properties.start) {
+                    const date = new Date(feature.properties.start);
+                    feature.properties.start = date.getTime();
+                }
+            });
+
+            console.log(data); // Log the modified data to see if the timestamps are correct
+
             timeline = L.timeline(data, {
                 style: function (data) {
                     return {
                         radius: 2,
                         fillColor: "#1585C2",
                         color: "#1585C2",
-                        weight: .5,
+                        weight: 0.5,
                         opacity: 1,
                         fillOpacity: 0.5
                     };
                 },
-                waitToUpdateMap: true,
+                waitToUpdateMap: true
             });
 
-            timelineControl = L.timelineSliderControl({ enableKeyboardControls: true, });
+            timelineControl = L.timelineSliderControl({ enableKeyboardControls: true });
             timeline.addTo(map);
             timelineControl.addTo(map);
             timelineControl.addTimelines(timeline);
         }
-
         // create search
         var searchOptions = {
             position: 'topleft',
