@@ -5,16 +5,24 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
-    <script src="https://skeate.dev/Leaflet.timeline/examples/leaflet.timeline.js"></script>
-    <script src="https://unpkg.com/esri-leaflet"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://dsps.lib.uiowa.edu/placing/public/leafletSlider-1.0.2/leaflet.SliderControl.min.js"></script>
     <script src="https://dsps.lib.uiowa.edu/placing/public/fuse-1.2.1/fuse.min.js"></script>
     <script src="https://dsps.lib.uiowa.edu/placing/public/leafletFuseSearch-noVersion/leafletfuse.js"></script>
     <link rel="stylesheet" href="https://dsps.lib.uiowa.edu/placing/public/leafletFuseSearch-noVersion/leafletfuse.css"
         type="text/css" />
+    <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" type="text/css">
+    <script
+        src="https://dsps.lib.uiowa.edu/placing/public/jqueryUiTouchPunch-0.2.2/jquery.ui.touch-punch.min.js"></script>
+    <script src="https://www.abeburton.com/web_mapping/WMfinal/GTFS/stop_info.js"></script>
     <script
         src="https://www.abeburton.com/web_mapping/WMfinal/Low_Transportation_Cost_Index_-6469997285854372953.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://dsps.lib.uiowa.edu/placing/css/style.css">
+    <link rel="stylesheet" type="text/css" href="https://dsps.lib.uiowa.edu/placing/css/navwrap.css">
+    <script src="https://unpkg.com/esri-leaflet"></script>
 
     <style>
         html,
@@ -26,17 +34,6 @@
         #map {
             width: 100vw;
             height: 100vh;
-        }
-
-        .leaflet-bottom.leaflet-left {
-            width: 100%;
-        }
-
-        .leaflet-control-container .leaflet-timeline-controls {
-            box-sizing: border-box;
-            width: 100%;
-            margin: 0;
-            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -77,6 +74,7 @@
                                             value >= 10 ? '#f7fcf5' :
                                                 '#FFFFFF';
         }
+
         var expenseLayer = L.geoJson(expense, {
             onEachFeature: onEachFeature,
             style: function (feature) {
@@ -109,6 +107,15 @@
             }
         });
 
+        var blueCircleMarkers = {
+            radius: 2,
+            fillColor: "#4F86D5",
+            color: "#4F86D5",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.5
+        };
+
         var myIcon = L.icon({
             iconUrl: 'my-icon.png',
             iconRetinaUrl: 'my-icon@2x.png',
@@ -117,39 +124,23 @@
             popupAnchor: [-1, -1]
         });
 
-        // LEAFLET SLIDER
-        var timeline;
-        var timelineControl;
+        var timelineLayer = L.geoJson(stopInfo, {
+            onEachFeature: onEachFeature,
+            pointToLayer: function (feature, latlng) {
+                return L.circleMarker(latlng, blueCircleMarkers);
+            }
+        });
 
-        function onLoadData(data) {
-            data.features.forEach(feature => {
-                if (feature.properties && feature.properties.start) {
-                    const date = new Date(feature.properties.start);
-                    feature.properties.start = date.getTime();
-                }
-            });
+        var sliderControl = L.control.sliderControl({
+            position: "topright",
+            layer: timelineLayer,
+            range: true, // gives it a bottom and a top slider
+        });
 
-            console.log(data); // Log the modified data to see if the timestamps are correct
+        map.addControl(sliderControl);
+        sliderControl.startSlider(); // initialize
 
-            timeline = L.timeline(data, {
-                style: function (data) {
-                    return {
-                        radius: 2,
-                        fillColor: "#1585C2",
-                        color: "#1585C2",
-                        weight: 0.5,
-                        opacity: 1,
-                        fillOpacity: 0.5
-                    };
-                },
-                waitToUpdateMap: true
-            });
 
-            timelineControl = L.timelineSliderControl({ enableKeyboardControls: true });
-            timeline.addTo(map);
-            timelineControl.addTo(map);
-            timelineControl.addTimelines(timeline);
-        }
         // create search
         var searchOptions = {
             position: 'topleft',
@@ -188,7 +179,6 @@
 
         L.control.layers(baseMaps, overlays, { collapsed: false }).addTo(map);
     </script>
-    <script src="https://www.abeburton.com/web_mapping/WMfinal/GTFS/stop_info.jsonp"></script>
 </body>
 
 </html>
